@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { kellyFraction, simulatePath, runMonteCarlo } from "../src/sim.js";
+import { kellyFraction, simulatePath, runMonteCarlo, estimateRiskOfRuin } from "../src/sim.js";
 
 test("kellyFraction returns 0 for a coin-flip with no edge", () => {
   assert.equal(kellyFraction(0.5, 1), 0);
@@ -50,6 +50,31 @@ test("runMonteCarlo reports 0% ruin for a guaranteed-win scenario", () => {
     betFraction: 0.5,
   });
   assert.equal(riskOfRuin, 0);
+});
+
+test("estimateRiskOfRuin matches runMonteCarlo's riskOfRuin for the same rng sequence", () => {
+  let seed = 0;
+  const rng = () => {
+    seed = (seed + 0.137) % 1;
+    return seed;
+  };
+  const params = { numPaths: 40, numBets: 15, winProb: 0.4, payoutRatio: 1, betFraction: 0.3 };
+  seed = 0;
+  const { riskOfRuin: fromFull } = runMonteCarlo({ ...params, rng });
+  seed = 0;
+  const fromEstimate = estimateRiskOfRuin({ ...params, rng });
+  assert.equal(fromEstimate, fromFull);
+});
+
+test("estimateRiskOfRuin returns a plain number, not an array", () => {
+  const riskOfRuin = estimateRiskOfRuin({
+    numPaths: 10,
+    numBets: 5,
+    winProb: 0.5,
+    payoutRatio: 1,
+    betFraction: 0.1,
+  });
+  assert.equal(typeof riskOfRuin, "number");
 });
 
 test("runMonteCarlo returns one path per requested run", () => {
