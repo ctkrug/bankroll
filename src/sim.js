@@ -70,3 +70,37 @@ export function estimateRiskOfRuin({ numPaths, numBets, winProb, payoutRatio, be
   }
   return ruinCount / numPaths;
 }
+
+// Default percentile bands drawn over the raw fan (5th/25th/50th/75th/95th).
+export const DEFAULT_PERCENTILES = [5, 25, 50, 75, 95];
+
+/**
+ * Compute percentile bands across a set of equal-length equity paths, one
+ * value per percentile per time step. Returns a Map from percentile number
+ * to a Float64Array of length numBets + 1, so the fan chart can draw a
+ * distinct line per band without re-sorting on every redraw of the raw fan.
+ * Uses nearest-rank interpolation between the two closest sorted samples.
+ */
+export function computePercentiles(paths, percentiles = DEFAULT_PERCENTILES) {
+  if (paths.length === 0) {
+    return new Map(percentiles.map((p) => [p, new Float64Array(0)]));
+  }
+  const numSteps = paths[0].length;
+  const bands = new Map(percentiles.map((p) => [p, new Float64Array(numSteps)]));
+  const column = new Float64Array(paths.length);
+  for (let step = 0; step < numSteps; step++) {
+    for (let i = 0; i < paths.length; i++) {
+      column[i] = paths[i][step];
+    }
+    column.sort();
+    for (const p of percentiles) {
+      const rank = (p / 100) * (column.length - 1);
+      const lower = Math.floor(rank);
+      const upper = Math.ceil(rank);
+      const weight = rank - lower;
+      const value = column[lower] + (column[upper] - column[lower]) * weight;
+      bands.get(p)[step] = value;
+    }
+  }
+  return bands;
+}
