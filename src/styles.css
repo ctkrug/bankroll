@@ -236,3 +236,75 @@ input[type="range"]:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.kelly-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--surface-2);
+  border-radius: var(--radius-panel);
+  border: 1px solid rgba(64, 196, 255, 0.14);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  min-height: 44px;
+}
+
+.toggle-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(122, 148, 168, 0.3);
+  border: 1px solid rgba(64, 196, 255, 0.2);
+  position: relative;
+  transition: background 150ms ease-out;
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 150ms ease-out, background 150ms ease-out;
+}
+
+.toggle[aria-checked="true"] .toggle-track {
+  background: rgba(64, 196, 255, 0.35);
+}
+
+.toggle[aria-checked="true"] .toggle-thumb {
+  transform: translateX(16px);
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(64, 196, 255, 0.6);
+}
+
+.toggle:hover .toggle-track {
+  border-color: var(--accent);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.kelly-readout {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
