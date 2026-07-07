@@ -11,8 +11,15 @@
   },
   "license": "MIT",
   "author": "Charlie Krug",
+  "engines": {
+    "node": ">=20"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ctkrug/bankroll.git"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/ctkrug/bankroll/issues"
+  },
+  "homepage": "https://github.com/ctkrug/bankroll#readme"
 }
