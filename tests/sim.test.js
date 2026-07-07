@@ -88,3 +88,36 @@ test("runMonteCarlo returns one path per requested run", () => {
   assert.equal(paths.length, 25);
   assert.equal(paths[0].length, 11);
 });
+
+test("simulatePath with betFraction 0 never changes bankroll and never produces NaN", () => {
+  const path = simulatePath(30, 0.5, 1, 0, () => 0.4);
+  for (const value of path) {
+    assert.equal(Number.isNaN(value), false);
+    assert.equal(value, 1);
+  }
+});
+
+test("simulatePath with numBets 0 returns a flat single-point path at the starting bankroll", () => {
+  const path = simulatePath(0, 0.5, 1, 0.1);
+  assert.equal(path.length, 1);
+  assert.equal(path[0], 1);
+});
+
+test("runMonteCarlo with numBets 0 reports 0% risk of ruin", () => {
+  const { riskOfRuin, paths } = runMonteCarlo({
+    numPaths: 20,
+    numBets: 0,
+    winProb: 0.5,
+    payoutRatio: 1,
+    betFraction: 0.1,
+  });
+  assert.equal(riskOfRuin, 0);
+  assert.ok(paths.every((path) => path.length === 1 && path[0] === 1));
+});
+
+test("simulatePath never produces NaN at winProb boundaries of 0 or 1", () => {
+  for (const winProb of [0, 1]) {
+    const path = simulatePath(20, winProb, 2, 0.25, () => 0.5);
+    assert.ok(path.every((value) => !Number.isNaN(value)));
+  }
+});
