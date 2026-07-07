@@ -308,3 +308,78 @@ input[type="range"]:disabled {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+.chart-hero {
+  position: relative;
+  background: var(--surface-1);
+  border: 1px solid rgba(64, 196, 255, 0.14);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 0 24px rgba(64, 196, 255, 0.08);
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+}
+
+#fan-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border-radius: var(--radius-control);
+}
+
+.counter-chip {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid rgba(64, 196, 255, 0.25);
+  border-radius: var(--radius-panel);
+  padding: var(--space-2) var(--space-3);
+  text-align: right;
+  z-index: 2;
+  transition: box-shadow 150ms ease-out;
+}
+
+.counter-chip.is-danger {
+  box-shadow: 0 0 20px rgba(255, 92, 108, 0.5);
+}
+
+.counter-label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.counter-value {
+  display: block;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend .swatch {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+}
