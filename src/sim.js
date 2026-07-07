@@ -55,3 +55,18 @@ export function runMonteCarlo({ numPaths, numBets, winProb, payoutRatio, betFrac
   }
   return { paths, riskOfRuin: ruinCount / numPaths };
 }
+
+/**
+ * Same simulation as runMonteCarlo but discards each path immediately after
+ * checking it for ruin. Used for the Kelly-vs-manual comparison readout,
+ * which only needs the scalar riskOfRuin and would otherwise double the
+ * per-recompute allocation of a second full 10,000-path array set.
+ */
+export function estimateRiskOfRuin({ numPaths, numBets, winProb, payoutRatio, betFraction, rng = Math.random }) {
+  let ruinCount = 0;
+  for (let i = 0; i < numPaths; i++) {
+    const path = simulatePath(numBets, winProb, payoutRatio, betFraction, rng);
+    if (path[path.length - 1] <= RUIN_THRESHOLD) ruinCount++;
+  }
+  return ruinCount / numPaths;
+}
