@@ -1,0 +1,52 @@
+:root {
+  --bg: #0a1420;
+  --surface-1: #0f1e2e;
+  --surface-2: #152a3f;
+  --text: #e8f4fb;
+  --text-muted: #7a94a8;
+  --accent: #40c4ff;
+  --accent-support: #ff8a3d;
+  --success: #3ddc97;
+  --danger: #ff5c6c;
+  --font-display: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-6: 48px;
+  --radius-panel: 4px;
+  --radius-control: 2px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background:
+    linear-gradient(rgba(64, 196, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 196, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(ellipse at center, var(--bg) 60%, #060d16 100%);
+  background-size: 24px 24px, 24px 24px, cover;
+  color: var(--text);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+.mono {
+  font-family: var(--font-display);
+}
+
+a {
+  color: var(--accent);
+}
