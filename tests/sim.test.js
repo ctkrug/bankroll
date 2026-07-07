@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { kellyFraction, simulatePath, runMonteCarlo, estimateRiskOfRuin } from "../src/sim.js";
+import { kellyFraction, simulatePath, runMonteCarlo, estimateRiskOfRuin, computePercentiles } from "../src/sim.js";
 
 test("kellyFraction returns 0 for a coin-flip with no edge", () => {
   assert.equal(kellyFraction(0.5, 1), 0);
@@ -119,5 +119,41 @@ test("simulatePath never produces NaN at winProb boundaries of 0 or 1", () => {
   for (const winProb of [0, 1]) {
     const path = simulatePath(20, winProb, 2, 0.25, () => 0.5);
     assert.ok(path.every((value) => !Number.isNaN(value)));
+  }
+});
+
+test("computePercentiles returns exact values at 0th and 100th percentile", () => {
+  const paths = [
+    Float64Array.from([1, 2]),
+    Float64Array.from([1, 5]),
+    Float64Array.from([1, 3]),
+  ];
+  const bands = computePercentiles(paths, [0, 100]);
+  assert.equal(bands.get(0)[1], 2);
+  assert.equal(bands.get(100)[1], 5);
+});
+
+test("computePercentiles median matches the middle value for an odd-sized sample", () => {
+  const paths = [
+    Float64Array.from([1, 10]),
+    Float64Array.from([1, 20]),
+    Float64Array.from([1, 30]),
+  ];
+  const bands = computePercentiles(paths, [50]);
+  assert.equal(bands.get(50)[1], 20);
+});
+
+test("computePercentiles preserves the starting bankroll at step 0 across all bands", () => {
+  const paths = [Float64Array.from([1, 2]), Float64Array.from([1, 0.5])];
+  const bands = computePercentiles(paths, [5, 50, 95]);
+  for (const p of [5, 50, 95]) {
+    assert.equal(bands.get(p)[0], 1);
+  }
+});
+
+test("computePercentiles handles an empty path set without throwing", () => {
+  const bands = computePercentiles([], [5, 50, 95]);
+  for (const p of [5, 50, 95]) {
+    assert.equal(bands.get(p).length, 0);
   }
 });
