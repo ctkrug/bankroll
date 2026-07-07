@@ -418,3 +418,92 @@ input[type="range"]:disabled {
     padding: var(--space-1) var(--space-2);
   }
 }
+
+/* Odometer-style digit roll for the risk-of-ruin counter: each character is
+   an overflow-hidden window; main.js slides the outgoing glyph up-and-out
+   while the incoming one slides up-and-in from below. */
+.counter-value {
+  display: inline-flex;
+}
+
+.counter-digit {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  height: 1.15em;
+  width: 0.62em;
+  text-align: center;
+}
+
+.counter-digit:last-child {
+  width: auto;
+}
+
+.counter-digit-face {
+  position: absolute;
+  inset: 0;
+  transition: transform 220ms ease-out, opacity 220ms ease-out;
+}
+
+.counter-digit-face.is-entering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.counter-digit-face.is-current {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.counter-digit-face.is-exiting {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* Fan-chart sweep: a thin scanline animates left-to-right on recompute,
+   reinforcing that the instrument just re-measured (see DESIGN.md). */
+.chart-hero .sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chart-hero .sweep.is-sweeping {
+  animation: sweep-across 320ms ease-out;
+}
+
+@keyframes sweep-across {
+  from {
+    left: 0;
+    opacity: 0.9;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .counter-digit-face {
+    transition: none;
+  }
+
+  .chart-hero .sweep.is-sweeping {
+    animation: none;
+    opacity: 0;
+  }
+
+  input[type="range"]::-webkit-slider-thumb,
+  input[type="range"]::-moz-range-thumb,
+  .toggle-track,
+  .toggle-thumb,
+  .counter-chip {
+    transition: none;
+  }
+}
