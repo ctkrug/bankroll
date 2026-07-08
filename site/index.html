@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bankroll: see your real risk of ruin, live</title>
+  <meta name="description" content="Free Monte-Carlo bankroll simulator. Set your edge, win rate, and bet size, run 10,000 equity paths, and watch your risk of ruin and the Kelly-optimal bet update live." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Bankroll: see your real risk of ruin, live" />
+  <meta property="og:description" content="Set your edge and bet size, run 10,000 Monte-Carlo equity paths, and watch your risk of ruin and Kelly-optimal sizing update live in the browser." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230a1420'/%3E%3Cpath d='M6 24 L12 14 L18 20 L26 8' stroke='%2340c4ff' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <span class="wordmark"><span class="wordmark-glyph" aria-hidden="true">&#9670;</span>bankroll</span>
+      <p class="tagline">live monte-carlo risk of ruin</p>
+      <a class="source-link mono" href="https://github.com/ctkrug/bankroll" target="_blank" rel="noopener">
+        View source
+        <span aria-hidden="true">&#8599;</span>
+      </a>
+    </header>
+
+    <main class="layout">
+      <section class="control-panel" aria-labelledby="controls-heading">
+        <h2 id="controls-heading" class="panel-heading">Controls</h2>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="win-prob">Win probability</label>
+            <output for="win-prob" id="win-prob-value" class="control-value mono">55%</output>
+          </div>
+          <input type="range" id="win-prob" min="1" max="99" step="1" value="55" />
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="payout-ratio">Payout ratio</label>
+            <output for="payout-ratio" id="payout-ratio-value" class="control-value mono">1.0 : 1</output>
+          </div>
+          <input type="range" id="payout-ratio" min="0.2" max="5" step="0.1" value="1" />
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="bet-fraction">Bet size</label>
+            <output for="bet-fraction" id="bet-fraction-value" class="control-value mono">10%</output>
+          </div>
+          <input type="range" id="bet-fraction" min="0" max="100" step="1" value="10" />
+        </div>
+
+        <div class="kelly-row">
+          <button type="button" id="kelly-toggle" class="toggle" role="switch" aria-checked="false">
+            <span class="toggle-track" aria-hidden="true"><span class="toggle-thumb"></span></span>
+            <span>Snap to Kelly</span>
+          </button>
+          <p class="kelly-readout mono" id="kelly-readout">Kelly-optimal —% &middot; ruin at Kelly —%</p>
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="num-paths">Simulated paths</label>
+            <output for="num-paths" id="num-paths-value" class="control-value mono">10,000</output>
+          </div>
+          <input type="range" id="num-paths" min="1000" max="10000" step="1000" value="10000" />
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="num-bets">Bets per path</label>
+            <output for="num-bets" id="num-bets-value" class="control-value mono">100</output>
+          </div>
+          <input type="range" id="num-bets" min="0" max="500" step="10" value="100" />
+        </div>
+
+        <p class="compute-time mono" id="compute-time"></p>
+      </section>
+
+      <section class="chart-hero" aria-labelledby="chart-heading">
+        <h2 id="chart-heading" class="sr-only">Equity fan chart</h2>
+        <div class="counter-chip" id="counter-chip">
+          <span class="counter-label">Risk of ruin</span>
+          <span class="counter-value mono" id="ruin-value" role="status" aria-live="polite">&mdash;</span>
+        </div>
+        <canvas id="fan-canvas"></canvas>
+        <div class="sweep" id="sweep" aria-hidden="true"></div>
+        <ul class="legend mono" id="legend"></ul>
+      </section>
+    </main>
+  </div>
+
+  <section class="explainer" aria-labelledby="explainer-heading">
+    <div class="explainer-inner">
+      <h2 id="explainer-heading">Understand your risk of ruin before it costs you</h2>
+      <p>
+        Bankroll is a free, browser-based Monte-Carlo simulator for anyone sizing repeated bets
+        against an edge: sports bettors, small traders, and poker players moving up in stakes. You
+        set three numbers (your win probability, the payout ratio, and the fraction of your bankroll
+        you stake per bet) and it runs 10,000 independent equity paths, then draws them as a fan
+        chart so you see the full range of outcomes instead of a single average.
+      </p>
+      <p>
+        The headline figure counts how many of those 10,000 paths fall to zero. That percentage is
+        the number a plain expected-value calculation hides: a strategy with a genuine positive edge
+        can still go broke most of the time if you stake too much of your bankroll on each wager.
+        Bankroll makes that variance visible so you can pick a bet size you can actually survive.
+      </p>
+
+      <h3>How to use it</h3>
+      <ol>
+        <li>Set the win probability and payout ratio to match the bet you actually make. The payout
+          ratio is how many units you win per unit staked, so an even-money bet is 1.0 to 1.</li>
+        <li>Drag the bet-size slider and watch the risk-of-ruin counter and the fan chart react
+          live. Small stakes keep almost every path alive; large stakes widen the fan and push the
+          ruin number up quickly.</li>
+        <li>Turn on "Snap to Kelly" to lock the bet size to the Kelly-optimal fraction for your
+          edge, then compare its risk of ruin against your manual size at the same edge.</li>
+        <li>Copy the address bar to save or share a scenario. Every slider value lives in the URL,
+          so a link reproduces the exact simulation.</li>
+      </ol>
+
+      <h3>Frequently asked questions</h3>
+      <dl class="faq">
+        <dt>What is risk of ruin?</dt>
+        <dd>Risk of ruin is the probability that a betting or trading strategy loses your whole
+          bankroll before you stop. Bankroll estimates it by simulation: it runs 10,000 sequences of
+          bets and reports the share that fall to effectively zero.</dd>
+
+        <dt>What is the Kelly criterion?</dt>
+        <dd>The Kelly criterion is the bet size that maximizes the long-run growth rate of a bankroll
+          for a given edge. For a bet paying <em>b</em> units per unit staked with win probability
+          <em>p</em>, it stakes a fraction (<em>bp</em> &minus; <em>q</em>) / <em>b</em>, where
+          <em>q</em> = 1 &minus; <em>p</em>. Bet more than Kelly and you take on variance without
+          extra growth; bet far more and ruin becomes likely.</dd>
+
+        <dt>Does a positive edge guarantee a profit?</dt>
+        <dd>No. Edge sets the direction of the average outcome, not the spread around it. With a real
+          edge but an oversized bet, an ordinary losing streak can bankrupt you before the edge pays
+          off. That gap between the average and the spread is exactly what the fan chart shows.</dd>
+
+        <dt>Is my data sent anywhere?</dt>
+        <dd>No. Every simulation runs locally in your browser using a Web Worker. There is no
+          account, no server, and nothing you type is uploaded or tracked.</dd>
+
+        <dt>How accurate are the numbers?</dt>
+        <dd>Each result is a Monte-Carlo estimate from up to 10,000 paths, so it carries sampling
+          noise and shifts slightly between runs. Raising the path count tightens the estimate;
+          lowering it speeds the simulation up on older devices.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <footer class="site-footer mono">
+    <span>Bankroll &middot; open source under the MIT license</span>
+    <a href="https://apps.charliekrug.com" target="_blank" rel="noopener">More by Charlie Krug &#8594; apps.charliekrug.com</a>
+  </footer>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

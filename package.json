@@ -7,6 +7,7 @@
   "scripts": {
     "test": "node --test tests/",
     "lint": "node --check src/sim.js && node --check src/worker.js && node --check src/chart.js && node --check src/urlState.js && node --check src/main.js",
+    "build": "node scripts/build-site.mjs",
     "start": "python3 -m http.server 8080"
   },
   "license": "MIT",

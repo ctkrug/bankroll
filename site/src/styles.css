@@ -1,0 +1,624 @@
+:root {
+  --bg: #0a1420;
+  --surface-1: #0f1e2e;
+  --surface-2: #152a3f;
+  --text: #e8f4fb;
+  --text-muted: #7a94a8;
+  --accent: #40c4ff;
+  --accent-support: #ff8a3d;
+  --success: #3ddc97;
+  --danger: #ff5c6c;
+  --font-display: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-6: 48px;
+  --radius-panel: 4px;
+  --radius-control: 2px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background:
+    linear-gradient(rgba(64, 196, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 196, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(ellipse at center, var(--bg) 60%, #060d16 100%);
+  background-size: 24px 24px, 24px 24px, cover;
+  color: var(--text);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+.mono {
+  font-family: var(--font-display);
+}
+
+a {
+  color: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(64, 196, 255, 0.12);
+}
+
+.wordmark {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.wordmark-glyph {
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+.tagline {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.source-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  border: 1px solid rgba(64, 196, 255, 0.2);
+  border-radius: var(--radius-control);
+  transition: color 150ms ease-out, border-color 150ms ease-out, background 150ms ease-out;
+}
+
+.source-link:hover,
+.source-link:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(64, 196, 255, 0.08);
+  outline: none;
+}
+
+.explainer {
+  border-top: 1px solid rgba(64, 196, 255, 0.12);
+  padding: var(--space-6) var(--space-4);
+  background:
+    linear-gradient(rgba(64, 196, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 196, 255, 0.03) 1px, transparent 1px),
+    var(--surface-1);
+  background-size: 24px 24px, 24px 24px, cover;
+}
+
+.explainer-inner {
+  max-width: 68ch;
+  margin: 0 auto;
+}
+
+.explainer h2 {
+  font-size: 1.4rem;
+  margin: 0 0 var(--space-3);
+  color: var(--text);
+}
+
+.explainer h3 {
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--accent);
+}
+
+.explainer p,
+.explainer li,
+.explainer dd {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.explainer p {
+  margin: 0 0 var(--space-2);
+}
+
+.explainer ol {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.faq {
+  margin: 0;
+}
+
+.faq dt {
+  color: var(--text);
+  font-weight: 600;
+  margin-top: var(--space-3);
+}
+
+.faq dd {
+  margin: 6px 0 0;
+}
+
+.faq em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid rgba(64, 196, 255, 0.12);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.site-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 150ms ease-out;
+}
+
+.site-footer a:hover,
+.site-footer a:focus-visible {
+  color: var(--accent);
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 30%) 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  align-items: stretch;
+}
+
+.panel-heading {
+  margin: 0 0 var(--space-3);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.control-panel {
+  background: var(--surface-1);
+  border: 1px solid rgba(64, 196, 255, 0.14);
+  border-radius: var(--radius-panel);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.control-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.control label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.control-value {
+  font-size: 0.875rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.compute-time {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.compute-time.is-error {
+  color: var(--danger);
+}
+
+/* Themed range slider: a flat cyan-on-navy track with a crisp square-ish
+   thumb, matching the blueprint/drafting-table direction rather than the
+   rounded native control. Duplicated across -webkit-/-moz- prefixes since
+   there's no unprefixed shorthand with consistent cross-browser support. */
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-control);
+  border: 1px solid rgba(64, 196, 255, 0.2);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-control);
+  border: 1px solid rgba(64, 196, 255, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px;
+  background: var(--accent);
+  border-radius: var(--radius-control);
+  border: none;
+  box-shadow: 0 0 8px rgba(64, 196, 255, 0.5);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: var(--radius-control);
+  border: none;
+  box-shadow: 0 0 8px rgba(64, 196, 255, 0.5);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(64, 196, 255, 0.8);
+}
+
+input[type="range"]:hover::-moz-range-thumb,
+input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(64, 196, 255, 0.8);
+}
+
+input[type="range"]:focus-visible {
+  outline: none;
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+input[type="range"]:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+input[type="range"]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.kelly-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--surface-2);
+  border-radius: var(--radius-panel);
+  border: 1px solid rgba(64, 196, 255, 0.14);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  min-height: 44px;
+}
+
+.toggle-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(122, 148, 168, 0.3);
+  border: 1px solid rgba(64, 196, 255, 0.2);
+  position: relative;
+  transition: background 150ms ease-out;
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 150ms ease-out, background 150ms ease-out;
+}
+
+.toggle[aria-checked="true"] .toggle-track {
+  background: rgba(64, 196, 255, 0.35);
+}
+
+.toggle[aria-checked="true"] .toggle-thumb {
+  transform: translateX(16px);
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(64, 196, 255, 0.6);
+}
+
+.toggle:hover .toggle-track {
+  border-color: var(--accent);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.kelly-readout {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.chart-hero {
+  position: relative;
+  background: var(--surface-1);
+  border: 1px solid rgba(64, 196, 255, 0.14);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 0 24px rgba(64, 196, 255, 0.08);
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+}
+
+#fan-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border-radius: var(--radius-control);
+}
+
+.counter-chip {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid rgba(64, 196, 255, 0.25);
+  border-radius: var(--radius-panel);
+  padding: var(--space-2) var(--space-3);
+  text-align: right;
+  z-index: 2;
+  transition: box-shadow 150ms ease-out;
+}
+
+.counter-chip.is-danger {
+  box-shadow: 0 0 20px rgba(255, 92, 108, 0.5);
+}
+
+.counter-label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.counter-value {
+  display: block;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend .swatch {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+}
+
+/* Below tablet width, the fan chart (the wow moment) leads the page and the
+   controls scroll below it as a single column, per DESIGN.md's phone layout
+   intent — the hero never loses top billing to the controls. */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .chart-hero {
+    order: -1;
+    min-height: 60vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .layout {
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .counter-chip {
+    top: var(--space-2);
+    right: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
+/* Odometer-style digit roll for the risk-of-ruin counter: each character is
+   an overflow-hidden window; main.js slides the outgoing glyph up-and-out
+   while the incoming one slides up-and-in from below. */
+.counter-value {
+  display: inline-flex;
+}
+
+.counter-digit {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  height: 1.15em;
+  width: 0.62em;
+  text-align: center;
+}
+
+.counter-digit:last-child {
+  width: auto;
+}
+
+.counter-digit-face {
+  position: absolute;
+  inset: 0;
+  transition: transform 220ms ease-out, opacity 220ms ease-out;
+}
+
+.counter-digit-face.is-entering {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.counter-digit-face.is-current {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.counter-digit-face.is-exiting {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* Fan-chart sweep: a thin scanline animates left-to-right on recompute,
+   reinforcing that the instrument just re-measured (see DESIGN.md). */
+.chart-hero .sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chart-hero .sweep.is-sweeping {
+  animation: sweep-across 320ms ease-out;
+}
+
+@keyframes sweep-across {
+  from {
+    left: 0;
+    opacity: 0.9;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .counter-digit-face {
+    transition: none;
+  }
+
+  .chart-hero .sweep.is-sweeping {
+    animation: none;
+    opacity: 0;
+  }
+
+  input[type="range"]::-webkit-slider-thumb,
+  input[type="range"]::-moz-range-thumb,
+  .toggle-track,
+  .toggle-thumb,
+  .counter-chip {
+    transition: none;
+  }
+}
