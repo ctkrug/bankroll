@@ -76,9 +76,18 @@ A full recompute at the default 10,000 paths × 100 bets is meaningfully heavier
 animation frame in this project's dev/CI sandbox (measured several hundred ms in a headless,
 containerized browser) — real, non-containerized browser hardware should do better, and the
 adjustable path-count control (down to 1,000) is the documented escape hatch for slower devices,
-where a full recompute drops to tens of ms. `scheduleSimulation`'s per-frame debounce means rapid
-dragging never queues up more than one pending request, so the UI stays responsive even when a
-single recompute takes longer than 16ms.
+where a full recompute drops to tens of ms.
+
+`scheduleSimulation`'s per-frame rAF gate only limits how often a request is *sent* — it says
+nothing about how long the worker takes to *answer* one. Since the worker's message queue is
+strictly FIFO, `main.js` separately tracks an in-flight flag per request mode (`full`/`ruinOnly`)
+and coalesces any requests that arrive while one is outstanding into a single trailing rerun
+(`sendFullRequest`/`sendRuinOnlyRequestIfEdgeChanged`), fired with whatever `state` is current when
+the in-flight job completes. Without this, a drag lasting more than one recompute's worth of time
+queues a full simulation per animation frame, and the worker has to grind through the entire
+backlog — every stale intermediate frame — before the chart reflects where the slider actually
+stopped; verified via a Playwright repro that a ~3s drag without coalescing left the UI visibly
+lagging for ~8s afterward, fully resolved by this fix.
 
 ## Running it
 
