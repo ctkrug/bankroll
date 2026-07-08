@@ -155,27 +155,56 @@ worker.onerror = (event) => {
   els.counterChip.classList.add("is-danger");
 };
 
+// scheduleSimulation's rAF gate only limits how often a request is *sent* to
+// one per frame — it says nothing about how long the worker takes to answer
+// one. At the default 10,000 paths a full recompute can take several hundred
+// ms (see docs/ARCHITECTURE.md perf notes), which is many frames' worth of
+// slider "input" events. Without in-flight tracking, every one of those
+// frames fires another postMessage, and since the worker processes its
+// mailbox strictly in order, a 2-3 second drag can queue dozens of full
+// simulations that then all have to run — one at a time — before the chart
+// catches up to where the slider actually stopped, several seconds later.
+// Track in-flight state per mode and coalesce to a single trailing rerun
+// (using whatever `state` is *current* when the in-flight job finishes)
+// instead of draining a backlog of stale intermediate frames.
+let fullRequestInFlight = false;
+let fullRerunPending = false;
+let ruinOnlyRequestInFlight = false;
+let ruinOnlyRerunPending = false;
+
 worker.onmessage = (event) => {
   const data = event.data;
   if (data.mode === "full") {
-    if (data.requestId < highestRenderedFullId) return;
-    highestRenderedFullId = data.requestId;
-    const meta = pendingStartTimes.get(data.requestId);
-    pendingStartTimes.delete(data.requestId);
-    lastPaths = data.rawSamples;
-    lastPercentileBands = data.percentiles;
-    redrawChart();
-    updateRuinCounter(data.riskOfRuin);
-    triggerSweep();
-    if (meta) {
-      const elapsed = performance.now() - meta.start;
-      els.computeTime.textContent = `${meta.numPaths.toLocaleString()} paths simulated in ${elapsed.toFixed(0)}ms`;
+    fullRequestInFlight = false;
+    if (data.requestId >= highestRenderedFullId) {
+      highestRenderedFullId = data.requestId;
+      const meta = pendingStartTimes.get(data.requestId);
+      pendingStartTimes.delete(data.requestId);
+      lastPaths = data.rawSamples;
+      lastPercentileBands = data.percentiles;
+      redrawChart();
+      updateRuinCounter(data.riskOfRuin);
+      triggerSweep();
+      if (meta) {
+        const elapsed = performance.now() - meta.start;
+        els.computeTime.textContent = `${meta.numPaths.toLocaleString()} paths simulated in ${elapsed.toFixed(0)}ms`;
+      }
+    }
+    if (fullRerunPending) {
+      fullRerunPending = false;
+      sendFullRequest();
     }
   } else if (data.mode === "ruinOnly") {
-    if (data.requestId < highestRenderedRuinOnlyId) return;
-    highestRenderedRuinOnlyId = data.requestId;
-    lastKellyRuin = data.riskOfRuin;
-    renderKellyReadout();
+    ruinOnlyRequestInFlight = false;
+    if (data.requestId >= highestRenderedRuinOnlyId) {
+      highestRenderedRuinOnlyId = data.requestId;
+      lastKellyRuin = data.riskOfRuin;
+      renderKellyReadout();
+    }
+    if (ruinOnlyRerunPending) {
+      ruinOnlyRerunPending = false;
+      sendRuinOnlyRequestIfEdgeChanged();
+    }
   }
 };
 
@@ -186,9 +215,13 @@ worker.onmessage = (event) => {
 // every frame for a number that hasn't moved.
 let lastKellyEdgeKey = null;
 
-function requestSimulation() {
+function sendFullRequest() {
+  if (fullRequestInFlight) {
+    fullRerunPending = true;
+    return;
+  }
+  fullRequestInFlight = true;
   const betFraction = state.useKelly ? kellyFraction(state.winProb, state.payoutRatio) : state.betFraction;
-
   const fullRequestId = ++requestCounter;
   pendingStartTimes.set(fullRequestId, { start: performance.now(), numPaths: state.numPaths });
   worker.postMessage({
@@ -200,21 +233,32 @@ function requestSimulation() {
     payoutRatio: state.payoutRatio,
     betFraction,
   });
+}
 
+function sendRuinOnlyRequestIfEdgeChanged() {
   const edgeKey = `${state.winProb}:${state.payoutRatio}:${state.numPaths}:${state.numBets}`;
-  if (edgeKey !== lastKellyEdgeKey) {
-    lastKellyEdgeKey = edgeKey;
-    const kellyOnlyRequestId = ++requestCounter;
-    worker.postMessage({
-      requestId: kellyOnlyRequestId,
-      mode: "ruinOnly",
-      numPaths: state.numPaths,
-      numBets: state.numBets,
-      winProb: state.winProb,
-      payoutRatio: state.payoutRatio,
-      betFraction: kellyFraction(state.winProb, state.payoutRatio),
-    });
+  if (edgeKey === lastKellyEdgeKey) return;
+  if (ruinOnlyRequestInFlight) {
+    ruinOnlyRerunPending = true;
+    return;
   }
+  lastKellyEdgeKey = edgeKey;
+  ruinOnlyRequestInFlight = true;
+  const kellyOnlyRequestId = ++requestCounter;
+  worker.postMessage({
+    requestId: kellyOnlyRequestId,
+    mode: "ruinOnly",
+    numPaths: state.numPaths,
+    numBets: state.numBets,
+    winProb: state.winProb,
+    payoutRatio: state.payoutRatio,
+    betFraction: kellyFraction(state.winProb, state.payoutRatio),
+  });
+}
+
+function requestSimulation() {
+  sendFullRequest();
+  sendRuinOnlyRequestIfEdgeChanged();
 }
 
 let frameScheduled = false;
