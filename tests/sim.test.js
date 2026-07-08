@@ -213,6 +213,16 @@ test("computePercentiles preserves the starting bankroll at step 0 across all ba
   }
 });
 
+test("computePercentiles linearly interpolates between ranks for a non-integer percentile rank", () => {
+  // 4 paths -> rank = (p/100) * 3 is fractional for p=25/75, so this is the
+  // only fixture that exercises the interpolation weight itself rather than
+  // landing exactly on a sorted index (where the weight is always 0 and a
+  // sign error in it would go unnoticed).
+  const bands = computePercentiles(columnMajor([[1, 10], [1, 20], [1, 30], [1, 40]]), [25, 75]);
+  assert.equal(bands.get(25)[1], 17.5);
+  assert.equal(bands.get(75)[1], 32.5);
+});
+
 test("computePercentiles does not mutate the source columns buffer", () => {
   const result = columnMajor([[1, 2], [1, 5], [1, 3]]);
   const before = Array.from(result.columns);
