@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/",
-    "lint": "node --check src/sim.js && node --check src/worker.js && node --check src/main.js",
+    "lint": "node --check src/sim.js && node --check src/worker.js && node --check src/chart.js && node --check src/urlState.js && node --check src/main.js",
     "start": "python3 -m http.server 8080"
   },
   "license": "MIT",
