@@ -50,12 +50,14 @@ Bankroll makes the variance visible. It's built for:
 ## Running locally
 
 ```sh
-npm start   # serves the static site at http://localhost:8080
-npm test    # runs the test suite (Node's built-in test runner)
+npm install   # installs devDependencies (fast-check, for property-based tests)
+npm start     # serves the static site at http://localhost:8080
+npm test      # runs the test suite (Node's built-in test runner)
 npm run lint  # syntax-checks every module
 ```
 
-No build step — `index.html` loads `src/*.js` directly as ES modules.
+No build step for the app itself — `index.html` loads `src/*.js` directly as ES modules.
+`npm install` is only needed to run the test suite locally.
 
 ## Stack
 

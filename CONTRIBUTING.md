@@ -1,11 +1,12 @@
 # Contributing
 
-Bankroll is a small static site with no build step. To work on it locally:
+Bankroll is a small static site with no build step for the app itself. To work on it locally:
 
 ```sh
-npm test        # runs the sim/Kelly test suite
-npm run lint    # syntax-checks the source files
-npm start       # serves the site at http://localhost:8080
+npm install      # installs devDependencies (needed for npm test)
+npm test         # runs the sim/Kelly test suite
+npm run lint     # syntax-checks the source files
+npm start        # serves the site at http://localhost:8080
 ```
 
 ## Guidelines
