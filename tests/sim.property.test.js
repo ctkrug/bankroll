@@ -16,8 +16,8 @@ import {
 test("kellyFraction is always clamped to [0, 1] across the whole valid domain", () => {
   fc.assert(
     fc.property(
-      fc.float({ min: Math.fround(0.01), max: Math.fround(0.99), noNaN: true }),
-      fc.float({ min: Math.fround(0.01), max: Math.fround(20), noNaN: true }),
+      fc.double({ min: 0.01, max: 0.99, noNaN: true }),
+      fc.double({ min: 0.01, max: 20, noNaN: true }),
       (winProb, payoutRatio) => {
         const f = kellyFraction(winProb, payoutRatio);
         return f >= 0 && f <= 1;
@@ -30,7 +30,7 @@ test("kellyFraction is 0 at or below the breakeven win probability for a given p
   // Breakeven: p * b = (1 - p), i.e. p = 1 / (1 + b). At or below that, the
   // bet has no or negative edge, so Kelly must never suggest staking anything.
   fc.assert(
-    fc.property(fc.float({ min: Math.fround(0.01), max: Math.fround(20), noNaN: true }), (payoutRatio) => {
+    fc.property(fc.double({ min: 0.01, max: 20, noNaN: true }), (payoutRatio) => {
       const breakeven = 1 / (1 + payoutRatio);
       const belowBreakeven = Math.max(0.001, breakeven - 0.01);
       return kellyFraction(belowBreakeven, payoutRatio) === 0;
@@ -42,9 +42,9 @@ test("simulatePath never produces a negative or NaN bankroll, for any inputs", (
   fc.assert(
     fc.property(
       fc.integer({ min: 0, max: 200 }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
-      fc.float({ min: Math.fround(0.01), max: Math.fround(20), noNaN: true }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
+      fc.double({ min: 0.01, max: 20, noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
       fc.integer({ min: -(2 ** 31), max: 2 ** 31 - 1 }),
       (numBets, winProb, payoutRatio, betFraction, seed) => {
         let s = seed || 1;
@@ -63,9 +63,9 @@ test("simulatePath, once ruined, never recovers", () => {
   fc.assert(
     fc.property(
       fc.integer({ min: 1, max: 100 }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
-      fc.float({ min: Math.fround(0.01), max: Math.fround(20), noNaN: true }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
+      fc.double({ min: 0.01, max: 20, noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
       fc.integer({ min: -(2 ** 31), max: 2 ** 31 - 1 }),
       (numBets, winProb, payoutRatio, betFraction, seed) => {
         let s = seed || 1;
@@ -87,9 +87,9 @@ test("runMonteCarlo's riskOfRuin is always a valid probability", () => {
     fc.property(
       fc.integer({ min: 1, max: 50 }),
       fc.integer({ min: 0, max: 60 }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
-      fc.float({ min: Math.fround(0.01), max: Math.fround(20), noNaN: true }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
+      fc.double({ min: 0.01, max: 20, noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
       (numPaths, numBets, winProb, payoutRatio, betFraction) => {
         const { riskOfRuin, columns } = runMonteCarlo({ numPaths, numBets, winProb, payoutRatio, betFraction });
         return (
@@ -109,9 +109,9 @@ test("computePercentiles bands are non-decreasing across ascending percentiles a
     fc.property(
       fc.integer({ min: 1, max: 30 }),
       fc.integer({ min: 1, max: 20 }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
-      fc.float({ min: Math.fround(0.01), max: Math.fround(20), noNaN: true }),
-      fc.float({ min: 0, max: Math.fround(1), noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
+      fc.double({ min: 0.01, max: 20, noNaN: true }),
+      fc.double({ min: 0, max: 1, noNaN: true }),
       (numPaths, numBets, winProb, payoutRatio, betFraction) => {
         const result = runMonteCarlo({ numPaths, numBets, winProb, payoutRatio, betFraction });
         const bands = computePercentiles(result, DEFAULT_PERCENTILES);
