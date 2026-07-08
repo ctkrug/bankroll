@@ -144,6 +144,17 @@ function redrawChart() {
   drawFanChart(ctx, { width, height, paths: lastPaths, percentileBands: lastPercentileBands });
 }
 
+// Without this, a worker load failure (unsupported module workers, a 404 on
+// a misconfigured subpath deploy) leaves the page silently stuck on its
+// initial dash forever — no chart, no error, no clue why. Surface it.
+worker.onerror = (event) => {
+  console.error("Simulation worker failed:", event.message || event);
+  els.computeTime.textContent = "Simulation engine failed to load — try reloading the page.";
+  els.computeTime.classList.add("is-error");
+  els.ruinValue.textContent = "ERR";
+  els.counterChip.classList.add("is-danger");
+};
+
 worker.onmessage = (event) => {
   const data = event.data;
   if (data.mode === "full") {

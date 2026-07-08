@@ -156,6 +156,10 @@ a {
   color: var(--text-muted);
 }
 
+.compute-time.is-error {
+  color: var(--danger);
+}
+
 /* Themed range slider: a flat cyan-on-navy track with a crisp square-ish
    thumb, matching the blueprint/drafting-table direction rather than the
    rounded native control. Duplicated across -webkit-/-moz- prefixes since
