@@ -46,9 +46,11 @@ readout, independent of whatever bet size the user has manually selected.
   a structured-clone copy.
 
 - **`src/chart.js`** — `<canvas>` rendering. `sizeCanvasToDisplay` handles devicePixelRatio-aware
-  sizing (crisp on retina, recomputed on resize). `computeYDomain` (log-scaled, since fractional
-  betting is multiplicative) and `getLegendItems` are pure and unit-tested; `drawFanChart` is the
-  thin, untested-by-design layer that turns pre-sampled paths + percentile bands into `ctx` calls.
+  sizing (crisp on retina, recomputed on resize) and is tested against a duck-typed fake canvas.
+  `computeYDomain` (log-scaled, since fractional betting is multiplicative) and `getLegendItems`
+  are pure and unit-tested. `drawFanChart` turns pre-sampled paths + percentile bands into `ctx`
+  calls; it's smoke-tested against a fake 2D context (edge-case input shapes don't throw, the
+  right number of lines get stroked) but exact pixel output stays untested by design.
 
 - **`src/urlState.js`** — pure `serializeStateToQuery` / `parseStateFromQuery` pair for the
   shareable-link feature. Malformed or out-of-range query values fall back to `DEFAULT_STATE`
