@@ -36,15 +36,26 @@ Bankroll makes the variance visible. It's built for:
 5. A **Kelly overlay** shows how the optimal fraction reshapes the fan — narrower, and with a
    dramatically lower ruin probability, at the same expected edge.
 
-## Planned features
+## Features
 
-- Interactive sliders for edge, win rate, bet size, and number of bets per path
+- Interactive sliders for win probability, payout ratio, bet size, path count, and bets per path
 - Real-time 10,000-path Monte-Carlo fan chart rendered on `<canvas>`, computed in a Web Worker
-- Live risk-of-ruin counter with smooth transitions on every input change
-- Kelly-optimal bet size calculation with a toggle to overlay it against the manual setting
-- Percentile bands (5th/25th/50th/75th/95th) drawn over the raw path fan
-- Shareable state via URL query parameters
+- Live risk-of-ruin counter with an odometer-style digit roll on every recompute
+- Kelly-optimal bet size with a "Snap to Kelly" toggle, and a side-by-side ruin comparison
+  (manual sizing vs. Kelly sizing) at the same edge
+- Percentile bands (5th/25th/50th/75th/95th) drawn over the raw path fan, with a legend
+- Shareable state via URL query parameters (`?edge=&payout=&bet=&paths=&bets=&kelly=`)
 - Fully static, zero-backend deployment (works from any CDN or subpath)
+
+## Running locally
+
+```sh
+npm start   # serves the static site at http://localhost:8080
+npm test    # runs the test suite (Node's built-in test runner)
+npm run lint  # syntax-checks every module
+```
+
+No build step — `index.html` loads `src/*.js` directly as ES modules.
 
 ## Stack
 
@@ -55,8 +66,10 @@ Bankroll makes the variance visible. It's built for:
 
 ## Status
 
-Early scaffold. See [`docs/VISION.md`](docs/VISION.md) for the full design rationale and
-[`docs/BACKLOG.md`](docs/BACKLOG.md) for the build plan.
+Core Monte-Carlo simulation, fan chart, Kelly overlay, and URL state are implemented and tested.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a map of the codebase,
+[`docs/VISION.md`](docs/VISION.md) for the design rationale, and
+[`docs/BACKLOG.md`](docs/BACKLOG.md) for what's left.
 
 ## License
 
