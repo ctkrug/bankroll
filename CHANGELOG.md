@@ -40,3 +40,16 @@ All notable changes to this project are documented here. Format follows
   value until that slider was next dragged.
 - The main thread had no `worker.onerror` handler, so a simulation worker load failure left the
   page silently stuck on its initial dash forever with no chart and no explanation.
+- `main.js` queued one full simulation request per animation frame during a drag, with no regard
+  for whether the worker had finished the previous one. Since the worker's mailbox is FIFO, a
+  real multi-second drag could queue dozens of full 10,000-path runs and leave the chart visibly
+  lagging for several seconds after the user stopped moving the slider, working through every
+  stale intermediate frame before showing the current one. Requests are now coalesced into a
+  single trailing rerun per mode instead of queuing a backlog.
+
+### Testing
+- Added property-based tests (`fast-check`) for the core simulation math and URL state
+  round-tripping, covering invariants across the input domain rather than fixed examples.
+- Added coverage for `sizeCanvasToDisplay` and `drawFanChart` (`src/chart.js`) against fake
+  canvas/context objects, and a guardrail test that derives `urlState.js`'s clamp ranges from
+  `index.html`'s actual slider bounds so the two can't silently drift apart again.
