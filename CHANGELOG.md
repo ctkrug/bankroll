@@ -32,3 +32,11 @@ All notable changes to this project are documented here. Format follows
   of a scattered gather.
 - The worker now samples raw paths down to a bounded set before responding, and sends results as
   transferables, so the ~8MB full path buffer never crosses the main-thread boundary.
+
+### Fixed
+- `parseStateFromQuery` clamped `payoutRatio`/`numBets` to a wider range than their sliders'
+  actual `min`/`max` in `index.html`, so an out-of-range shared URL left the slider rendered
+  clamped at its own max while the adjacent label (driven from state) showed the real, larger
+  value until that slider was next dragged.
+- The main thread had no `worker.onerror` handler, so a simulation worker load failure left the
+  page silently stuck on its initial dash forever with no chart and no explanation.
