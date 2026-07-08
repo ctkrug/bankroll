@@ -3,9 +3,17 @@
 All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.0.0] - 2026-07-08
+
+First public release.
 
 ### Added
+- Deployable landing/app output under `site/`, assembled by `scripts/build-site.mjs`
+  (`npm run build`) so the page serves self-contained from the `/bankroll` subpath.
+- Below-fold explainer and five-question FAQ covering risk of ruin, the Kelly criterion, and how
+  to use the tool, plus OpenGraph tags for link previews.
+- Masthead "View source" link to the repository and a portfolio footer.
+- `docs/launch/devto.md` build writeup on the column-major storage and worker-coalescing decisions.
 - Initial repository scaffold: README, MIT license, `.gitignore`.
 - Core Monte-Carlo and Kelly-fraction simulation math (`src/sim.js`).
 - Web Worker wiring to run simulations off the main thread (`src/worker.js`).
@@ -53,3 +61,5 @@ All notable changes to this project are documented here. Format follows
 - Added coverage for `sizeCanvasToDisplay` and `drawFanChart` (`src/chart.js`) against fake
   canvas/context objects, and a guardrail test that derives `urlState.js`'s clamp ranges from
   `index.html`'s actual slider bounds so the two can't silently drift apart again.
+- Covered `computeYDomain`'s empty-bands fallback so the log-scale domain stays finite when a run
+  produces no values.
