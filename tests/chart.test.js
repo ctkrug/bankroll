@@ -80,6 +80,15 @@ test("computeYDomain widens a degenerate (all-equal) domain so log-scale math do
   assert.ok(domain.max > domain.min);
 });
 
+test("computeYDomain falls back to a floored domain when the bands are empty", () => {
+  // No values at all (e.g. a numPaths=0 run) leaves min/max un-narrowed, so
+  // the domain must still come back finite and non-degenerate for makeScales.
+  const domain = computeYDomain(new Map(), 1e-3);
+  assert.equal(domain.min, 1e-3);
+  assert.ok(domain.max > domain.min);
+  assert.ok(Number.isFinite(Math.log10(domain.min)));
+});
+
 test("getLegendItems returns one entry per distinct percentile pair, not one per band", () => {
   const items = getLegendItems();
   assert.equal(items.length, 3);
