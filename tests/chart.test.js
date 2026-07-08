@@ -1,6 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { computeYDomain, getLegendItems, sizeCanvasToDisplay } from "../src/chart.js";
+import { computeYDomain, getLegendItems, sizeCanvasToDisplay, drawFanChart } from "../src/chart.js";
+
+// Minimal fake 2D context: every drawing call is a no-op recorded by name,
+// enough to smoke-test drawFanChart for exceptions across edge-case input
+// shapes without asserting on exact pixels (that's left untested by design —
+// see docs/ARCHITECTURE.md).
+function makeFakeCtx() {
+  const calls = [];
+  const record = (name) => (...args) => calls.push([name, ...args]);
+  return {
+    calls,
+    clearRect: record("clearRect"),
+    beginPath: record("beginPath"),
+    moveTo: record("moveTo"),
+    lineTo: record("lineTo"),
+    stroke: record("stroke"),
+    set strokeStyle(v) {},
+    set lineWidth(v) {},
+  };
+}
 
 // Duck-typed stand-in for a <canvas> element, just enough surface for
 // sizeCanvasToDisplay: CSS box size, a mutable backing-store width/height,
@@ -119,4 +138,46 @@ test("sizeCanvasToDisplay rounds fractional devicePixelRatio x CSS size to the n
   sizeCanvasToDisplay(canvas, 2.5);
   assert.equal(canvas.width, Math.round(375 * 2.5));
   assert.equal(canvas.height, Math.round(100 * 2.5));
+});
+
+test("drawFanChart clears and returns early for an empty path set, without drawing", () => {
+  const ctx = makeFakeCtx();
+  drawFanChart(ctx, { width: 400, height: 300, paths: [], percentileBands: new Map() });
+  assert.deepEqual(ctx.calls, [["clearRect", 0, 0, 400, 300]]);
+});
+
+test("drawFanChart draws every raw path plus every percentile band without throwing", () => {
+  const ctx = makeFakeCtx();
+  const paths = [Float64Array.from([1, 1.2, 0.9]), Float64Array.from([1, 0.5, 0])];
+  const percentileBands = new Map([
+    [5, Float64Array.from([1, 0.6, 0.3])],
+    [50, Float64Array.from([1, 0.9, 0.6])],
+    [95, Float64Array.from([1, 1.5, 2])],
+  ]);
+  assert.doesNotThrow(() => drawFanChart(ctx, { width: 400, height: 300, paths, percentileBands }));
+  // 2 raw paths + 3 percentile bands = 5 stroked lines
+  assert.equal(ctx.calls.filter(([name]) => name === "stroke").length, 5);
+});
+
+test("drawFanChart accepts a plain object for percentileBands, not just a Map", () => {
+  const ctx = makeFakeCtx();
+  const paths = [Float64Array.from([1, 1])];
+  const percentileBands = { 50: Float64Array.from([1, 1]) };
+  assert.doesNotThrow(() => drawFanChart(ctx, { width: 400, height: 300, paths, percentileBands }));
+});
+
+test("drawFanChart handles a single-step path (numBets=0) without dividing by zero", () => {
+  const ctx = makeFakeCtx();
+  const paths = [Float64Array.from([1])];
+  const percentileBands = new Map([[50, Float64Array.from([1])]]);
+  assert.doesNotThrow(() => drawFanChart(ctx, { width: 400, height: 300, paths, percentileBands }));
+});
+
+test("drawFanChart ignores percentile keys with no matching style (unknown bands)", () => {
+  const ctx = makeFakeCtx();
+  const paths = [Float64Array.from([1, 1])];
+  const percentileBands = new Map([[42, Float64Array.from([1, 1])]]);
+  drawFanChart(ctx, { width: 400, height: 300, paths, percentileBands });
+  // 1 raw path stroked; the unstyled band 42 is skipped, not stroked
+  assert.equal(ctx.calls.filter(([name]) => name === "stroke").length, 1);
 });
