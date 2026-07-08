@@ -208,3 +208,29 @@ test("computePercentiles handles an empty path set without throwing", () => {
     assert.equal(bands.get(p).length, 0);
   }
 });
+
+test("worked example: Kelly-sized risk of ruin is no worse than a materially larger manual bet at the same edge", () => {
+  const winProb = 0.55;
+  const payoutRatio = 1;
+  const kelly = kellyFraction(winProb, payoutRatio); // (1*0.55 - 0.45) / 1 = 0.10
+  assert.ok(Math.abs(kelly - 0.1) < 1e-9);
+
+  // Same deterministic rng sequence for both runs, so the comparison isn't
+  // confounded by draw luck — only the bet fraction differs.
+  function makeRng() {
+    let seed = 1;
+    return () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+  }
+
+  const shared = { numPaths: 2000, numBets: 200, winProb, payoutRatio };
+  const kellyRuin = estimateRiskOfRuin({ ...shared, betFraction: kelly, rng: makeRng() });
+  const overBetRuin = estimateRiskOfRuin({ ...shared, betFraction: kelly * 3, rng: makeRng() });
+
+  assert.ok(
+    kellyRuin <= overBetRuin,
+    `expected Kelly ruin (${kellyRuin}) <= 3x-Kelly ruin (${overBetRuin})`
+  );
+});
