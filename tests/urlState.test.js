@@ -39,3 +39,13 @@ test("parseStateFromQuery accepts a leading question mark", () => {
   const state = parseStateFromQuery("?edge=0.7");
   assert.equal(state.winProb, 0.7);
 });
+
+test("parseStateFromQuery clamps payoutRatio to the slider's own range (index.html max=5)", () => {
+  const state = parseStateFromQuery("payout=9999999");
+  assert.equal(state.payoutRatio, 5);
+});
+
+test("parseStateFromQuery clamps numBets to the slider's own range (index.html max=500)", () => {
+  const state = parseStateFromQuery("bets=800");
+  assert.equal(state.numBets, 500);
+});
