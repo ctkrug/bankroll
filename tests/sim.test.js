@@ -1,6 +1,29 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { kellyFraction, simulatePath, runMonteCarlo, estimateRiskOfRuin, computePercentiles } from "../src/sim.js";
+import {
+  kellyFraction,
+  simulatePath,
+  runMonteCarlo,
+  estimateRiskOfRuin,
+  computePercentiles,
+  extractPath,
+  samplePaths,
+} from "../src/sim.js";
+
+// Test-only helper: builds the {columns, numPaths, numSteps} shape
+// computePercentiles expects out of ordinary row-major path fixtures, so
+// individual test cases can stay readable as one row per path.
+function columnMajor(rowMajorPaths) {
+  const numPaths = rowMajorPaths.length;
+  const numSteps = numPaths === 0 ? 0 : rowMajorPaths[0].length;
+  const columns = new Float64Array(numPaths * numSteps);
+  for (let step = 0; step < numSteps; step++) {
+    for (let i = 0; i < numPaths; i++) {
+      columns[step * numPaths + i] = rowMajorPaths[i][step];
+    }
+  }
+  return { columns, numPaths, numSteps };
+}
 
 test("kellyFraction returns 0 for a coin-flip with no edge", () => {
   assert.equal(kellyFraction(0.5, 1), 0);
@@ -77,16 +100,47 @@ test("estimateRiskOfRuin returns a plain number, not an array", () => {
   assert.equal(typeof riskOfRuin, "number");
 });
 
-test("runMonteCarlo returns one path per requested run", () => {
-  const { paths } = runMonteCarlo({
+test("runMonteCarlo returns a column-major buffer sized for every path and step", () => {
+  const result = runMonteCarlo({
     numPaths: 25,
     numBets: 10,
     winProb: 0.5,
     payoutRatio: 1,
     betFraction: 0.1,
   });
-  assert.equal(paths.length, 25);
-  assert.equal(paths[0].length, 11);
+  assert.equal(result.numPaths, 25);
+  assert.equal(result.numSteps, 11);
+  assert.equal(result.columns.length, 25 * 11);
+  assert.equal(extractPath(result.columns, result.numPaths, result.numSteps, 0).length, 11);
+});
+
+test("extractPath pulls a single path's trajectory back out of the column-major buffer", () => {
+  const result = runMonteCarlo({
+    numPaths: 5,
+    numBets: 8,
+    winProb: 1,
+    payoutRatio: 1,
+    betFraction: 0.2,
+  });
+  const path = extractPath(result.columns, result.numPaths, result.numSteps, 2);
+  assert.equal(path.length, 9);
+  assert.equal(path[0], 1);
+  // guaranteed win: every path strictly grows
+  for (let i = 1; i < path.length; i++) assert.ok(path[i] > path[i - 1]);
+});
+
+test("samplePaths returns no more than maxSamples trajectories, evenly spaced", () => {
+  const result = runMonteCarlo({
+    numPaths: 1000,
+    numBets: 5,
+    winProb: 0.5,
+    payoutRatio: 1,
+    betFraction: 0.1,
+  });
+  const samples = samplePaths(result.columns, result.numPaths, result.numSteps, 100);
+  assert.ok(samples.length <= 100);
+  assert.ok(samples.length > 0);
+  assert.equal(samples[0].length, result.numSteps);
 });
 
 test("simulatePath with betFraction 0 never changes bankroll and never produces NaN", () => {
@@ -104,15 +158,16 @@ test("simulatePath with numBets 0 returns a flat single-point path at the starti
 });
 
 test("runMonteCarlo with numBets 0 reports 0% risk of ruin", () => {
-  const { riskOfRuin, paths } = runMonteCarlo({
+  const result = runMonteCarlo({
     numPaths: 20,
     numBets: 0,
     winProb: 0.5,
     payoutRatio: 1,
     betFraction: 0.1,
   });
-  assert.equal(riskOfRuin, 0);
-  assert.ok(paths.every((path) => path.length === 1 && path[0] === 1));
+  assert.equal(result.riskOfRuin, 0);
+  assert.equal(result.numSteps, 1);
+  assert.ok(Array.from(result.columns).every((v) => v === 1));
 });
 
 test("simulatePath never produces NaN at winProb boundaries of 0 or 1", () => {
@@ -123,36 +178,32 @@ test("simulatePath never produces NaN at winProb boundaries of 0 or 1", () => {
 });
 
 test("computePercentiles returns exact values at 0th and 100th percentile", () => {
-  const paths = [
-    Float64Array.from([1, 2]),
-    Float64Array.from([1, 5]),
-    Float64Array.from([1, 3]),
-  ];
-  const bands = computePercentiles(paths, [0, 100]);
+  const bands = computePercentiles(columnMajor([[1, 2], [1, 5], [1, 3]]), [0, 100]);
   assert.equal(bands.get(0)[1], 2);
   assert.equal(bands.get(100)[1], 5);
 });
 
 test("computePercentiles median matches the middle value for an odd-sized sample", () => {
-  const paths = [
-    Float64Array.from([1, 10]),
-    Float64Array.from([1, 20]),
-    Float64Array.from([1, 30]),
-  ];
-  const bands = computePercentiles(paths, [50]);
+  const bands = computePercentiles(columnMajor([[1, 10], [1, 20], [1, 30]]), [50]);
   assert.equal(bands.get(50)[1], 20);
 });
 
 test("computePercentiles preserves the starting bankroll at step 0 across all bands", () => {
-  const paths = [Float64Array.from([1, 2]), Float64Array.from([1, 0.5])];
-  const bands = computePercentiles(paths, [5, 50, 95]);
+  const bands = computePercentiles(columnMajor([[1, 2], [1, 0.5]]), [5, 50, 95]);
   for (const p of [5, 50, 95]) {
     assert.equal(bands.get(p)[0], 1);
   }
 });
 
+test("computePercentiles does not mutate the source columns buffer", () => {
+  const result = columnMajor([[1, 2], [1, 5], [1, 3]]);
+  const before = Array.from(result.columns);
+  computePercentiles(result, [50]);
+  assert.deepEqual(Array.from(result.columns), before);
+});
+
 test("computePercentiles handles an empty path set without throwing", () => {
-  const bands = computePercentiles([], [5, 50, 95]);
+  const bands = computePercentiles({ columns: new Float64Array(0), numPaths: 0, numSteps: 0 }, [5, 50, 95]);
   for (const p of [5, 50, 95]) {
     assert.equal(bands.get(p).length, 0);
   }
