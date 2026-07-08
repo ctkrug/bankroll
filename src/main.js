@@ -24,6 +24,12 @@ const els = {
 };
 
 const state = parseStateFromQuery(window.location.search);
+// When Kelly snap is active, betFraction must always mirror the Kelly
+// fraction for the loaded edge — never trust a stale/hand-edited `bet=`
+// query value, or the toggle and the slider could silently disagree.
+if (state.useKelly) {
+  state.betFraction = kellyFraction(state.winProb, state.payoutRatio);
+}
 
 const worker = new Worker("src/worker.js", { type: "module" });
 
