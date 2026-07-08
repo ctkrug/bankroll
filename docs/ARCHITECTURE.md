@@ -52,12 +52,19 @@ readout, independent of whatever bet size the user has manually selected.
 
 - **`src/urlState.js`** — pure `serializeStateToQuery` / `parseStateFromQuery` pair for the
   shareable-link feature. Malformed or out-of-range query values fall back to `DEFAULT_STATE`
-  field-by-field rather than rejecting the whole URL.
+  field-by-field rather than rejecting the whole URL. Each field's clamp range must match its
+  slider's `min`/`max` in `index.html` exactly — a wider clamp lets a shared URL produce state a
+  slider can't visually represent (it renders pinned at its own max while the label, driven from
+  state rather than the input, shows the real value). `tests/urlState-sliderSync.test.js` reads
+  `index.html` at test time and asserts this, so a slider range change without a matching clamp
+  update fails the suite instead of drifting silently.
 
 - **`src/main.js`** — DOM wiring only: reads/writes the sliders, owns `state`, debounces worker
   requests to one in flight per animation frame (`scheduleSimulation`), renders the odometer-style
   risk-of-ruin counter and the recompute "sweep" animation, and keeps the URL in sync via
-  `history.replaceState`.
+  `history.replaceState`. `worker.onerror` surfaces a danger-styled message in place of the
+  compute-time readout if the worker fails to load, so a module-worker-unsupported browser or a
+  misconfigured subpath deploy degrades to a visible error instead of a silently stuck page.
 
 - **`src/styles.css`** — the blueprint/technical direction from `docs/DESIGN.md`: tokens, themed
   range sliders and toggle switch, the two-column desktop / stacked-phone layout, and a
