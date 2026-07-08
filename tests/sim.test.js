@@ -64,6 +64,24 @@ test("runMonteCarlo reports 100% ruin for a guaranteed-loss scenario", () => {
   assert.equal(riskOfRuin, 1);
 });
 
+test("runMonteCarlo clamps a ruined path at 0 for every step after it ruins", () => {
+  // betFraction 0.5 halves the bankroll each loss; 30 guaranteed-loss bets
+  // crosses RUIN_THRESHOLD well before the last step, so this exercises the
+  // vectorized "already ruined, stays ruined" branch that the single-path
+  // simulatePath equivalent already covers.
+  const result = runMonteCarlo({
+    numPaths: 3,
+    numBets: 30,
+    winProb: 0,
+    payoutRatio: 1,
+    betFraction: 0.5,
+  });
+  const path = extractPath(result.columns, result.numPaths, result.numSteps, 0);
+  const firstZero = path.findIndex((v) => v === 0);
+  assert.ok(firstZero > 0 && firstZero < path.length - 1, "path should ruin before the final step");
+  assert.ok(path.slice(firstZero).every((v) => v === 0));
+});
+
 test("runMonteCarlo reports 0% ruin for a guaranteed-win scenario", () => {
   const { riskOfRuin } = runMonteCarlo({
     numPaths: 50,
