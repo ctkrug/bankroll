@@ -13,7 +13,6 @@ const PERCENTILE_STYLE = {
 
 const RAW_LINE_COLOR = "rgba(64, 196, 255, 0.05)";
 const RUIN_LINE_COLOR = "rgba(255, 92, 108, 0.06)";
-const MAX_SAMPLED_RAW_LINES = 400;
 const FLOOR = 1e-3;
 
 /**
@@ -83,9 +82,11 @@ function strokePath(ctx, values, toX, toY) {
 }
 
 /**
- * Draws the raw path fan (a bounded sample, for perf) plus the percentile
- * bands over it. `paths` is the array of Float64Arrays from runMonteCarlo;
- * `percentileBands` is the Map/object from computePercentiles.
+ * Draws the raw path fan plus the percentile bands over it. `paths` is
+ * already a bounded, pre-sampled array of Float64Arrays (the worker samples
+ * before sending, so the postMessage payload stays small regardless of how
+ * many paths were simulated); `percentileBands` is the Map/object from
+ * computePercentiles.
  */
 export function drawFanChart(ctx, { width, height, paths, percentileBands }) {
   ctx.clearRect(0, 0, width, height);
@@ -95,10 +96,8 @@ export function drawFanChart(ctx, { width, height, paths, percentileBands }) {
   const yDomain = computeYDomain(percentileBands);
   const { toX, toY } = makeScales(width, height, numSteps, yDomain);
 
-  const sampleStride = Math.max(1, Math.floor(paths.length / MAX_SAMPLED_RAW_LINES));
   ctx.lineWidth = 1;
-  for (let i = 0; i < paths.length; i += sampleStride) {
-    const path = paths[i];
+  for (const path of paths) {
     ctx.strokeStyle = path.at(-1) <= FLOOR ? RUIN_LINE_COLOR : RAW_LINE_COLOR;
     strokePath(ctx, path, toX, toY);
   }
